@@ -63,6 +63,7 @@ window.FEATURE_DATA = [
       { name: "Lose game", file: "gameflow-lose.mp4", desc: "Save and swap between full equipment presets." },
       { name: "Out of bullets", file: "gameflow-out-of-bubbles.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
       { name: "Fast foward", file: "gameflow-fastforward.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
+      { name: "Ingame store", file: "gameflow-ingame-store.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
     ]
   },
   {
