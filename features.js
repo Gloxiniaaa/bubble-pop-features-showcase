@@ -55,13 +55,29 @@ window.FEATURE_DATA = [
     ]
   },
   {
-    section: "Complete game",
+    section: "Game flow",
     color: "var(--orange)",
     features: [
       { name: "A normal game flow", file: "gameflow-complete.mp4", desc: "Save and swap between full equipment presets." },
       { name: "Quit game", file: "gameflow-quit-game.mp4", desc: "Save and swap between full equipment presets." },
       { name: "Lose game", file: "gameflow-lose.mp4", desc: "Save and swap between full equipment presets." },
-      { name: "Out of bullets", file: "gameflow-out-of-bullets.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
+      { name: "Out of bullets", file: "gameflow-out-of-bubbles.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
+      { name: "Fast foward", file: "gameflow-fastforward.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
+    ]
+  },
+  {
+    section: "Home",
+    color: "var(--red)",
+    features: [
+      { name: "Infinite scroll", file: "home-infinite-scroll.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "Settings/ Button feedback", file: "home-settings.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
+      { name: "Daily rewards", file: "home-daily-rewards.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "Daily rewards introduction", file: "home-daily-rewards-introduce.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "Daily bonus", file: "home-daily-bonus.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "Spinning Wheel", file: "home-wheel.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "Chests", file: "home-chest.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
+      { name: "Tabs", file: "home-tabs.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
+      { name: "Lives", file: "home-lives.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
     ]
   },
 ];

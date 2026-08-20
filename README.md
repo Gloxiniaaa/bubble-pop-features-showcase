@@ -28,7 +28,7 @@ Open `features.js`, find the `window.FEATURE_DATA` array, and add an entry:
 ```js
 {
   section: "Combat",           // groups features under a header in the sidebar
-  color: "var(--pink)",        // var(--pink) / var(--blue) / var(--green) / var(--yellow)
+  color: "var(--pink)",        // var(--orange) / var(--yellow) / var(--pink) / var(--blue) / var(--green) / var(--purple) / var(--cyan) / var(--lime) / var(--red) / var(--violet)
   features: [
     { name: "Dodge Roll", file: "combat-dodge-roll.mp4", desc: "One line about it." },
     // add more feature rows here
