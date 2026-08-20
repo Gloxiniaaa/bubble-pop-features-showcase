@@ -199,6 +199,7 @@
     padding-bottom: 58px;
   }
   .stage-info .label{
+    display: inline-block;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -225,6 +226,19 @@
     font-size: 12.5px;
     color: #555;
     line-height: 1.5;
+  }
+  /* Caption re-animates on every feature switch (restarted from JS):
+     label → title → desc cascade */
+  .stage-caption .label,
+  .stage-caption .title,
+  .stage-caption .desc{
+    animation: captionIn 320ms cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  }
+  .stage-caption .title{ animation-delay: 70ms; }
+  .stage-caption .desc{ animation-delay: 140ms; }
+  @keyframes captionIn{
+    from{ opacity: 0; transform: translateY(14px); }
+    to{ opacity: 1; transform: translateY(0); }
   }
 
   /* Video frame — a thin border rather than a thick bezel, so the
@@ -457,6 +471,13 @@
     featureCount.textContent = flatFeatures.length + ' clip' + (flatFeatures.length === 1 ? '' : 's');
   }
 
+  /* CSS animations run once on load; forcing 'none' → '' re-triggers them. */
+  function restartAnimation(el){
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = '';
+  }
+
   function updateStageUI(index, feature){
     if(activeCard) activeCard.classList.remove('is-active');
     feature.cardEl.classList.add('is-active');
@@ -467,6 +488,9 @@
     sectionLabel.textContent = feature.section;
     captionTitle.textContent = feature.name;
     captionDesc.textContent = feature.desc || '';
+    restartAnimation(sectionLabel);
+    restartAnimation(captionTitle);
+    restartAnimation(captionDesc);
 
     placeholderEl.style.display = 'none';
     liveScreen.style.zIndex = 1;
@@ -516,7 +540,9 @@
   function slideToFeature(delta){
     if(swipeLock || !flatFeatures.length || activeIndex < 0) return;
 
-    const nextIndex = Math.max(0, Math.min(flatFeatures.length - 1, activeIndex + delta));
+    /* Loop around: last → first, first → last (infinite feed). */
+    const count = flatFeatures.length;
+    const nextIndex = (activeIndex + delta + count) % count;
     if(nextIndex === activeIndex) return;
 
     if(reducedMotion){ selectFeature(nextIndex); return; }
