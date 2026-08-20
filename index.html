@@ -247,9 +247,28 @@
     box-shadow: 8px 8px 0 0 var(--ink);
     overflow: hidden;
   }
+  /* Fixed gray header/footer chrome, painted ABOVE the sliding videos so
+     the screen scrolls behind them and they never get hidden. */
+  .device::before,
+  .device::after{
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    z-index: 3;
+    background: var(--phone);
+  }
+  .device::before{ top: 0; height: 44px; }
+  .device::after{ bottom: 0; height: 36px; }
+
+  /* Two stacked screens slide in parallel so the frame is never empty:
+     the exiting video leaves from one edge while the next enters from
+     the opposite edge, TikTok-style. */
   .device-screen{
-    position: relative;
-    width: 100%; height: 100%;
+    position: absolute;
+    left: 0; right: 0;
+    top: 44px; bottom: 36px;
+    z-index: 0;
+    transition: transform 280ms cubic-bezier(0.22, 0.9, 0.3, 1);
   }
   .device-screen video{
     width: 100%; height: 100%;
@@ -258,9 +277,11 @@
     background: var(--phone);
     display: block;
   }
-  .device-screen .placeholder{
+  .placeholder{
     position: absolute;
-    inset: 0;
+    left: 0; right: 0;
+    top: 44px; bottom: 36px;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -354,10 +375,13 @@
     </div>
 
     <div class="device">
-      <div class="device-screen">
-        <video id="player" playsinline webkit-playsinline loop></video>
-        <div class="placeholder" id="placeholder">Select a feature<br>from the left to play its clip</div>
+      <div class="device-screen" id="screenA">
+        <video id="playerA" playsinline webkit-playsinline loop></video>
       </div>
+      <div class="device-screen" id="screenB">
+        <video id="playerB" playsinline webkit-playsinline loop></video>
+      </div>
+      <div class="placeholder" id="placeholder">Select a feature<br>from the left to play its clip</div>
     </div>
 
     <button class="sound-toggle" id="soundToggle" type="button">🔊 Sound on</button>
@@ -373,7 +397,10 @@
 
   const listEl        = document.getElementById('featureList');
   const stageEl        = document.getElementById('stage');
-  const playerEl       = document.getElementById('player');
+  const screenA        = document.getElementById('screenA');
+  const screenB        = document.getElementById('screenB');
+  const playerA        = document.getElementById('playerA');
+  const playerB        = document.getElementById('playerB');
   const placeholderEl  = document.getElementById('placeholder');
   const captionTitle   = document.getElementById('captionTitle');
   const captionDesc    = document.getElementById('captionDesc');
@@ -386,7 +413,13 @@
   let activeIndex = -1;
   let soundOn = true;
 
-  playerEl.muted = !soundOn;
+  /* Only one screen is "live" (target of controls/selection). The other is
+     the standby layer that slides in during swipes, then gets promoted. */
+  let liveScreen = screenA,    livePlayer = playerA;
+  let standbyScreen = screenB, standbyPlayer = playerB;
+
+  livePlayer.muted = !soundOn;
+  liveScreen.style.zIndex = 1;
 
   function buildSidebar(){
     if(!FEATURE_DATA.length){
@@ -424,10 +457,7 @@
     featureCount.textContent = flatFeatures.length + ' clip' + (flatFeatures.length === 1 ? '' : 's');
   }
 
-  function selectFeature(index){
-    const feature = flatFeatures[index];
-    if(!feature) return;
-
+  function updateStageUI(index, feature){
     if(activeCard) activeCard.classList.remove('is-active');
     feature.cardEl.classList.add('is-active');
     activeCard = feature.cardEl;
@@ -439,20 +469,29 @@
     captionDesc.textContent = feature.desc || '';
 
     placeholderEl.style.display = 'none';
-    playerEl.style.display = 'block';
-    playerEl.src = 'videos/' + feature.file;
-    playerEl.loop = true;
-    playerEl.currentTime = 0;
-    playerEl.play().catch(() => {
+    liveScreen.style.zIndex = 1;
+    standbyScreen.style.zIndex = 0;
+  }
+
+  function selectFeature(index){
+    const feature = flatFeatures[index];
+    if(!feature) return;
+
+    updateStageUI(index, feature);
+    livePlayer.style.display = 'block';
+    livePlayer.src = 'videos/' + feature.file;
+    livePlayer.loop = true;
+    livePlayer.currentTime = 0;
+    livePlayer.play().catch(() => {
       /* Browsers block unmuted autoplay before any click has
          happened on the page (e.g. the very first clip on load).
          Fall back to muted playback so it still plays instantly,
          and reflect that in the sound toggle. */
-      if(!playerEl.muted){
-        playerEl.muted = true;
+      if(!livePlayer.muted){
+        livePlayer.muted = true;
         soundOn = false;
         soundToggle.textContent = '🔇 Sound off';
-        playerEl.play().catch(() => {});
+        livePlayer.play().catch(() => {});
       }
     });
   }
@@ -460,41 +499,115 @@
   function togglePlayback(){
     if(!flatFeatures.length || activeIndex < 0) return;
 
-    if(playerEl.paused){
-      playerEl.play().catch(() => {});
+    if(livePlayer.paused){
+      livePlayer.play().catch(() => {});
     } else {
-      playerEl.pause();
+      livePlayer.pause();
     }
   }
 
-  function selectRelativeFeature(delta){
-    if(!flatFeatures.length || activeIndex < 0) return;
+  /* TikTok-style swipe: the live video exits while the standby video
+     (preloaded with the next clip) enters from the opposite edge in the
+     same motion, so the frame never shows a gap. Keyboard + wheel + touch
+     all route here. */
+  let swipeLock = false;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function slideToFeature(delta){
+    if(swipeLock || !flatFeatures.length || activeIndex < 0) return;
 
     const nextIndex = Math.max(0, Math.min(flatFeatures.length - 1, activeIndex + delta));
-    if(nextIndex !== activeIndex) selectFeature(nextIndex);
+    if(nextIndex === activeIndex) return;
+
+    if(reducedMotion){ selectFeature(nextIndex); return; }
+
+    swipeLock = true;
+    /* next → live exits up, standby enters from below; previous is the mirror */
+    const isNext = delta > 0;
+    const exitY = isNext ? '-100%' : '100%';
+    const enterY = isNext ? '100%' : '-100%';
+    const feature = flatFeatures[nextIndex];
+
+    /* Stage the standby layer off-screen without animating, then slide both. */
+    standbyScreen.style.transition = 'none';
+    standbyScreen.style.transform = 'translateY(' + enterY + ')';
+    standbyPlayer.muted = livePlayer.muted;
+    standbyPlayer.src = 'videos/' + feature.file;
+    standbyPlayer.loop = true;
+    standbyPlayer.currentTime = 0;
+    standbyPlayer.play().catch(() => {});
+
+    void standbyScreen.offsetWidth;          /* flush the off-screen position */
+    liveScreen.style.transition = '';
+    liveScreen.style.transform = 'translateY(' + exitY + ')';
+    standbyScreen.style.transition = '';
+    standbyScreen.style.transform = 'translateY(0)';
+
+    let done = false;
+    const finish = () => {
+      if(done) return;
+      done = true;
+      swipeLock = false;
+      /* Promote the incoming layer to live; reset both instantly. */
+      [liveScreen, standbyScreen] = [standbyScreen, liveScreen];
+      [livePlayer, standbyPlayer] = [standbyPlayer, livePlayer];
+      liveScreen.style.transition = 'none';
+      liveScreen.style.transform = 'translateY(0)';
+      standbyScreen.style.transition = 'none';
+      standbyScreen.style.transform = 'translateY(0)';
+      updateStageUI(nextIndex, feature);
+    };
+
+    standbyScreen.addEventListener('transitionend', finish, { once: true });
+    setTimeout(finish, 400);                 /* ponytail: fallback if transitionend never fires */
   }
 
   function seekBy(seconds){
     if(!flatFeatures.length || activeIndex < 0) return;
 
-    const duration = Number.isFinite(playerEl.duration) ? playerEl.duration : null;
-    const targetTime = playerEl.currentTime + seconds;
-    playerEl.currentTime = Math.max(0, duration === null ? targetTime : Math.min(duration, targetTime));
+    const duration = Number.isFinite(livePlayer.duration) ? livePlayer.duration : null;
+    const targetTime = livePlayer.currentTime + seconds;
+    livePlayer.currentTime = Math.max(0, duration === null ? targetTime : Math.min(duration, targetTime));
   }
 
   soundToggle.addEventListener('click', () => {
     soundOn = !soundOn;
-    playerEl.muted = !soundOn;
+    livePlayer.muted = !soundOn;
     soundToggle.textContent = soundOn ? '🔊 Sound on' : '🔇 Sound off';
-    if(soundOn) playerEl.play().catch(() => {});
+    if(soundOn) livePlayer.play().catch(() => {});
   });
 
-  playerEl.addEventListener('error', () => {
-    if(!playerEl.currentSrc) return;
+  /* Only surface errors for the visible (live) player — the standby layer
+     is off-screen during load and must not flash the placeholder. */
+  const onPlayerError = function(){
+    if(this !== livePlayer) return;
+    if(!livePlayer.currentSrc) return;
     placeholderEl.style.display = 'flex';
-    placeholderEl.textContent = 'Couldn\'t find "' + playerEl.src.split('/').pop() + '" in /videos';
-    playerEl.style.display = 'none';
-  });
+    placeholderEl.textContent = 'Couldn\'t find "' + livePlayer.src.split('/').pop() + '" in /videos';
+    livePlayer.style.display = 'none';
+  };
+  playerA.addEventListener('error', onPlayerError);
+  playerB.addEventListener('error', onPlayerError);
+
+  /* Wheel → swipe. The sidebar keeps its own native scroll. */
+  let wheelLock = false;
+  document.addEventListener('wheel', (event) => {
+    if(event.target.closest('.sidebar')) return;
+    if(wheelLock || Math.abs(event.deltaY) < 20) return;
+    wheelLock = true;
+    slideToFeature(event.deltaY > 0 ? 1 : -1);
+    setTimeout(() => { wheelLock = false; }, 320);
+  }, { passive: true });
+
+  /* Touch swipe (mobile) */
+  let touchStartY = null;
+  document.addEventListener('touchstart', (event) => { touchStartY = event.touches[0].clientY; }, { passive: true });
+  document.addEventListener('touchend', (event) => {
+    if(touchStartY === null) return;
+    const deltaY = event.changedTouches[0].clientY - touchStartY;
+    if(Math.abs(deltaY) > 40) slideToFeature(deltaY < 0 ? 1 : -1);
+    touchStartY = null;
+  }, { passive: true });
 
   document.addEventListener('keydown', (event) => {
     if(!flatFeatures.length || activeIndex < 0) return;
@@ -509,13 +622,13 @@
 
     if(event.key === 'ArrowDown' || key === 's'){
       event.preventDefault();
-      selectRelativeFeature(1);
+      slideToFeature(1);
       return;
     }
 
     if(event.key === 'ArrowUp' || key === 'w'){
       event.preventDefault();
-      selectRelativeFeature(-1);
+      slideToFeature(-1);
       return;
     }
 
