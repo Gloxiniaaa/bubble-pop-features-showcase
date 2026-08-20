@@ -31,12 +31,14 @@ window.FEATURE_DATA = [
     ]
   },
   {
-    section: "Combat",
-    color: "var(--pink)",
+    section: "Bubble",
+    color: "var(--green)",
     features: [
-      { name: "Dodge Roll", file: "combat-dodge-roll.mp4", desc: "Frame-perfect dodge with i-frames and a directional dash." },
-      { name: "Parry Window", file: "combat-parry.mp4", desc: "Tight parry timing that opens a guaranteed counter-hit." },
-      { name: "Combo Finisher", file: "combat-combo-finisher.mp4", desc: "Chain light attacks into a screen-shaking finisher." },
+      { name: "ColorBall", file: "bubble-color-ball.mp4", desc: "Frame-perfect dodge with i-frames and a directional dash." },
+      { name: "2ColorBall", file: "bubble-2color-ball.mp4", desc: "Tight parry timing that opens a guaranteed counter-hit." },
+      { name: "EmptyBall", file: "bubble-empty-ball.mp4", desc: "Chain light attacks into a screen-shaking finisher." },
+      { name: "Blackhole", file: "bubble-blackhole.mp4", desc: "Chain light attacks into a screen-shaking finisher." },
+      { name: "Spiderweb", file: "bubble-spiderweb.mp4", desc: "Chain light attacks into a screen-shaking finisher." },
     ]
   },
   {
