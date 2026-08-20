@@ -21,16 +21,6 @@ window.FEATURE_DATA = [
   //   ]
   // },
   {
-    section: "Booster",
-    color: "var(--pink)",
-    features: [
-      { name: "4 Boosters", file: "booster-4.mp4", desc: "Bomb - Rainbow - Electric - Rocket" },
-      { name: "Booster bonus", file: "booster-bonus.mp4", desc: "Detached bubbles ++bomb. Combos ++Rocket" },
-      { name: "Unlimited booster", file: "booster-unlimit.mp4", desc: "The first time booster is introduced -> unlimited." },
-      { name: "Purchase booster", file: "booster-purchase.mp4", desc: "During gameplay, buy a booster or watch an ads if you have none" },
-    ]
-  },
-  {
     section: "Bubble",
     color: "var(--green)",
     features: [
@@ -41,6 +31,17 @@ window.FEATURE_DATA = [
       { name: "Spiderweb", file: "bubble-spiderweb.mp4", desc: "Chain light attacks into a screen-shaking finisher." },
     ]
   },
+
+  {
+    section: "Booster",
+    color: "var(--pink)",
+    features: [
+      { name: "4 Boosters", file: "booster-4.mp4", desc: "Bomb - Rainbow - Electric - Rocket" },
+      { name: "Booster bonus", file: "booster-bonus.mp4", desc: "Detached bubbles ++bomb. Combos ++Rocket" },
+      { name: "Unlimited booster", file: "booster-unlimit.mp4", desc: "The first time booster is introduced -> unlimited." },
+      { name: "Purchase booster", file: "booster-purchase.mp4", desc: "During gameplay, buy a booster or watch an ads if you have none" },
+    ]
+  },
   {
     section: "Shooter",
     color: "var(--blue)",
@@ -49,6 +50,17 @@ window.FEATURE_DATA = [
       { name: "Ray", file: "shooter-ray.mp4", desc: "A second mid-air jump unlocked after the first boss." },
       { name: "Indicator", file: "shooter-indicator.mp4", desc: "A second mid-air jump unlocked after the first boss." },
       { name: "Out of bublets", file: "shooter-out-of-bubbles.mp4", desc: "Warp between discovered waypoints from the map screen." },
+      { name: "Hide header", file: "shooter-hide-header.mp4", desc: "Warp between discovered waypoints from the map screen." },
+    ]
+  },
+  {
+    section: "Complete game",
+    color: "var(--orange)",
+    features: [
+      { name: "A normal game flow", file: "gameflow-complete.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "lose game", file: "gameflow-lose.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "quit game", file: "gameflow-quit-game.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "Dye System", file: "customization-dye.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
     ]
   },
   {
