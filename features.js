@@ -12,14 +12,6 @@
    many features as you like; the list scrolls.
    ================================================================ */
 window.FEATURE_DATA = [
-  // {
-  //   section: "Customization",
-  //   color: "var(--green)",
-  //   features: [
-  //     { name: "Gear Loadouts", file: "customization-loadouts.mp4", desc: "Save and swap between full equipment presets." },
-  //     { name: "Dye System", file: "customization-dye.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
-  //   ]
-  // },
   {
     section: "Bubble",
     color: "var(--green)",
@@ -28,6 +20,7 @@ window.FEATURE_DATA = [
       { name: "2ColorBall", file: "bubble-2color-ball.mp4", desc: "Tight parry timing that opens a guaranteed counter-hit." },
       { name: "EmptyBall", file: "bubble-empty-ball.mp4", desc: "Chain light attacks into a screen-shaking finisher." },
       { name: "Blackhole", file: "bubble-blackhole.mp4", desc: "Chain light attacks into a screen-shaking finisher." },
+      { name: "Stone", file: "bubble-stone.mp4", desc: "Chain light attacks into a screen-shaking finisher." },
       { name: "Spiderweb", file: "bubble-spiderweb.mp4", desc: "Chain light attacks into a screen-shaking finisher." },
     ]
   },
@@ -47,10 +40,18 @@ window.FEATURE_DATA = [
     color: "var(--blue)",
     features: [
       { name: "Impact rings", file: "shooter-impact-rings.mp4", desc: "Swing across gaps and yank distant objects into range." },
+      { name: "Detached bubbles", file: "shooter-detached.mp4", desc: "Swing across gaps and yank distant objects into range." },
       { name: "Ray", file: "shooter-ray.mp4", desc: "A second mid-air jump unlocked after the first boss." },
       { name: "Indicator", file: "shooter-indicator.mp4", desc: "A second mid-air jump unlocked after the first boss." },
-      { name: "Out of bublets", file: "shooter-out-of-bubbles.mp4", desc: "Warp between discovered waypoints from the map screen." },
       { name: "Hide header", file: "shooter-hide-header.mp4", desc: "Warp between discovered waypoints from the map screen." },
+    ]
+  },
+  {
+    section: "Queue",
+    color: "var(--yellow)",
+    features: [
+      { name: "Queue", file: "queue-replace.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "Ensure queue", file: "queue-ensure.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
     ]
   },
   {
@@ -58,17 +59,9 @@ window.FEATURE_DATA = [
     color: "var(--orange)",
     features: [
       { name: "A normal game flow", file: "gameflow-complete.mp4", desc: "Save and swap between full equipment presets." },
-      { name: "lose game", file: "gameflow-lose.mp4", desc: "Save and swap between full equipment presets." },
-      { name: "quit game", file: "gameflow-quit-game.mp4", desc: "Save and swap between full equipment presets." },
-      { name: "Dye System", file: "customization-dye.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
-    ]
-  },
-  {
-    section: "Customization",
-    color: "var(--green)",
-    features: [
-      { name: "Gear Loadouts", file: "customization-loadouts.mp4", desc: "Save and swap between full equipment presets." },
-      { name: "Dye System", file: "customization-dye.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
+      { name: "Quit game", file: "gameflow-quit-game.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "Lose game", file: "gameflow-lose.mp4", desc: "Save and swap between full equipment presets." },
+      { name: "Out of bullets", file: "gameflow-out-of-bullets.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
     ]
   },
 ];
