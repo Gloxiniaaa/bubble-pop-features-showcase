@@ -67,3 +67,11 @@ used, save, and refresh the page.
   immediately.
 - Clips play muted by default (browsers allow this reliably); use the
   "Sound on" button under the caption if your clips have audio you want to hear.
+
+## Keyboard controls
+
+- `Space`: pause or resume the current video.
+- `Down Arrow` / `S`: next video.
+- `Up Arrow` / `W`: previous video.
+- `Right Arrow` / `D`: forward 1 second.
+- `Left Arrow` / `A`: rewind 1 second.

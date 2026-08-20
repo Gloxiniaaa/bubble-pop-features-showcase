@@ -342,6 +342,7 @@
 
   let flatFeatures = [];
   let activeCard = null;
+  let activeIndex = -1;
   let soundOn = true;
 
   playerEl.muted = !soundOn;
@@ -389,6 +390,7 @@
     if(activeCard) activeCard.classList.remove('is-active');
     feature.cardEl.classList.add('is-active');
     activeCard = feature.cardEl;
+    activeIndex = index;
 
     stageEl.style.setProperty('--accent', feature.color || 'var(--yellow)');
     sectionLabel.textContent = feature.section;
@@ -414,6 +416,31 @@
     });
   }
 
+  function togglePlayback(){
+    if(!flatFeatures.length || activeIndex < 0) return;
+
+    if(playerEl.paused){
+      playerEl.play().catch(() => {});
+    } else {
+      playerEl.pause();
+    }
+  }
+
+  function selectRelativeFeature(delta){
+    if(!flatFeatures.length || activeIndex < 0) return;
+
+    const nextIndex = Math.max(0, Math.min(flatFeatures.length - 1, activeIndex + delta));
+    if(nextIndex !== activeIndex) selectFeature(nextIndex);
+  }
+
+  function seekBy(seconds){
+    if(!flatFeatures.length || activeIndex < 0) return;
+
+    const duration = Number.isFinite(playerEl.duration) ? playerEl.duration : null;
+    const targetTime = playerEl.currentTime + seconds;
+    playerEl.currentTime = Math.max(0, duration === null ? targetTime : Math.min(duration, targetTime));
+  }
+
   soundToggle.addEventListener('click', () => {
     soundOn = !soundOn;
     playerEl.muted = !soundOn;
@@ -426,6 +453,41 @@
     placeholderEl.style.display = 'flex';
     placeholderEl.textContent = 'Couldn\'t find "' + playerEl.src.split('/').pop() + '" in /videos';
     playerEl.style.display = 'none';
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if(!flatFeatures.length || activeIndex < 0) return;
+
+    const key = event.key.toLowerCase();
+
+    if(event.code === 'Space'){
+      event.preventDefault();
+      togglePlayback();
+      return;
+    }
+
+    if(event.key === 'ArrowDown' || key === 's'){
+      event.preventDefault();
+      selectRelativeFeature(1);
+      return;
+    }
+
+    if(event.key === 'ArrowUp' || key === 'w'){
+      event.preventDefault();
+      selectRelativeFeature(-1);
+      return;
+    }
+
+    if(event.key === 'ArrowRight' || key === 'd'){
+      event.preventDefault();
+      seekBy(1);
+      return;
+    }
+
+    if(event.key === 'ArrowLeft' || key === 'a'){
+      event.preventDefault();
+      seekBy(-1);
+    }
   });
 
   buildSidebar();
