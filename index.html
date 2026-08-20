@@ -20,6 +20,7 @@
     --pink:       #FF4FA3;
     --blue:       #4D7CFE;
     --green:      #2BD98F;
+    --phone:      #999;
 
     --shadow-offset: 6px;
     --border-w: 3px;
@@ -227,8 +228,8 @@
     aspect-ratio: 9 / 19.5;
     max-width: 100%;
     margin: 0 auto;
-    background: #000;
-    border: var(--border-w) solid var(--ink);
+    background: var(--phone);
+    border: var(--border-w) solid var(--phone);
     border-radius: 16px;
     box-shadow: 8px 8px 0 0 var(--ink);
     overflow: hidden;
@@ -241,7 +242,7 @@
     width: 100%; height: 100%;
     /* contain, never cover — no part of the clip is ever cropped */
     object-fit: contain;
-    background: #000;
+    background: var(--phone);
     display: block;
   }
   .device-screen .placeholder{

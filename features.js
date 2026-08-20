@@ -12,14 +12,14 @@
    many features as you like; the list scrolls.
    ================================================================ */
 window.FEATURE_DATA = [
-  {
-    section: "Customization",
-    color: "var(--green)",
-    features: [
-      { name: "Gear Loadouts", file: "customization-loadouts.mp4", desc: "Save and swap between full equipment presets." },
-      { name: "Dye System", file: "customization-dye.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
-    ]
-  },
+  // {
+  //   section: "Customization",
+  //   color: "var(--green)",
+  //   features: [
+  //     { name: "Gear Loadouts", file: "customization-loadouts.mp4", desc: "Save and swap between full equipment presets." },
+  //     { name: "Dye System", file: "customization-dye.mp4", desc: "Recolor any armor piece using unlocked dye channels." },
+  //   ]
+  // },
   {
     section: "Booster",
     color: "var(--pink)",
@@ -42,12 +42,13 @@ window.FEATURE_DATA = [
     ]
   },
   {
-    section: "Exploration",
+    section: "Shooter",
     color: "var(--blue)",
     features: [
-      { name: "Grapple Hook", file: "exploration-grapple.mp4", desc: "Swing across gaps and yank distant objects into range." },
-      { name: "Double Jump", file: "exploration-double-jump.mp4", desc: "A second mid-air jump unlocked after the first boss." },
-      { name: "Fast Travel", file: "exploration-fast-travel.mp4", desc: "Warp between discovered waypoints from the map screen." },
+      { name: "Impact rings", file: "shooter-impact-rings.mp4", desc: "Swing across gaps and yank distant objects into range." },
+      { name: "Ray", file: "shooter-ray.mp4", desc: "A second mid-air jump unlocked after the first boss." },
+      { name: "Indicator", file: "shooter-indicator.mp4", desc: "A second mid-air jump unlocked after the first boss." },
+      { name: "Out of bublets", file: "shooter-out-of-bubbles.mp4", desc: "Warp between discovered waypoints from the map screen." },
     ]
   },
   {
