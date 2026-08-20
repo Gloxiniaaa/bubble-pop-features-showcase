@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feature Reel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+
+  /* ============================================================
+     DESIGN TOKENS
+     ============================================================ */
+  :root{
+    --ink:        #111111;
+    --paper:      #FFFFFF;
+    --stage:      #F4F2EC;
+
+    --yellow:     #FFE04D;
+    --pink:       #FF4FA3;
+    --blue:       #4D7CFE;
+    --green:      #2BD98F;
+
+    --shadow-offset: 6px;
+    --border-w: 3px;
+
+    --font-display: 'Archivo Black', 'Arial Black', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--stage);
+    font-family: var(--font-mono);
+    color: var(--ink);
+    overflow: hidden;
+  }
+
+  ::selection{ background: var(--yellow); }
+
+  /* scrollbars — keep them chunky + on-brand */
+  ::-webkit-scrollbar{ width: 10px; }
+  ::-webkit-scrollbar-track{ background: var(--paper); }
+  ::-webkit-scrollbar-thumb{ background: var(--ink); border: 2px solid var(--paper); }
+
+  /* ============================================================
+     LAYOUT SHELL
+     ============================================================ */
+  .app{
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    height: 100vh;
+  }
+
+  /* ---------------- SIDEBAR ---------------- */
+  .sidebar{
+    background: var(--paper);
+    border-right: var(--border-w) solid var(--ink);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .brand{
+    padding: 22px 20px 18px;
+    border-bottom: var(--border-w) solid var(--ink);
+    flex: 0 0 auto;
+  }
+  .brand-title{
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .brand-sub{
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #666;
+  }
+
+  .feature-list{
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 18px 16px 24px;
+  }
+
+  .section-block + .section-block{ margin-top: 22px; }
+
+  .section-eyebrow{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+    padding: 0 2px;
+  }
+  .section-eyebrow .dot{
+    width: 10px; height: 10px;
+    border: 2px solid var(--ink);
+    background: var(--dot-color, var(--yellow));
+    flex: 0 0 auto;
+  }
+
+  .feature-card{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    background: var(--paper);
+    border: var(--border-w) solid var(--ink);
+    box-shadow: var(--shadow-offset) var(--shadow-offset) 0 0 var(--ink);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: transform 60ms ease, box-shadow 60ms ease, background 60ms ease;
+  }
+  .feature-card:hover{
+    transform: translate(-1px, -1px);
+    box-shadow: calc(var(--shadow-offset) + 2px) calc(var(--shadow-offset) + 2px) 0 0 var(--ink);
+  }
+  .feature-card:active{
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 0 var(--ink);
+  }
+  .feature-card.is-active{
+    background: var(--dot-color, var(--yellow));
+    transform: translate(var(--shadow-offset), var(--shadow-offset));
+    box-shadow: 0 0 0 0 var(--ink);
+  }
+
+  .feature-index{
+    flex: 0 0 auto;
+    width: 22px; height: 22px;
+    border: 2px solid var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    background: var(--paper);
+  }
+  .feature-card.is-active .feature-index{ background: var(--ink); color: var(--paper); }
+
+  .feature-name{ flex: 1 1 auto; line-height: 1.25; }
+
+  .feature-list-empty{
+    font-size: 12px;
+    color: #888;
+    padding: 12px 2px;
+    line-height: 1.5;
+  }
+
+  /* ---------------- STAGE ---------------- */
+  .stage{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 24px 32px 20px;
+    background:
+      radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--accent, var(--yellow)) 22%, transparent) 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, color-mix(in srgb, var(--accent, var(--blue)) 18%, transparent) 0%, transparent 45%),
+      var(--stage);
+    transition: background 200ms ease;
+  }
+
+  /* Title/description block, pinned top-left so the video frame
+     below is free to claim the rest of the vertical space. */
+  .stage-info{
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .stage-info .label{
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #777;
+  }
+  .stage-info .count{
+    font-size: 11px;
+    font-weight: 700;
+    color: #777;
+    white-space: nowrap;
+  }
+  .stage-caption{
+    text-align: left;
+    max-width: 460px;
+  }
+  .stage-caption .title{
+    font-family: var(--font-display);
+    font-size: 22px;
+    line-height: 1.1;
+  }
+  .stage-caption .desc{
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  /* Video frame — a thin border rather than a thick bezel, so the
+     clip itself gets essentially all of the available height and
+     none of it is ever covered or cropped. */
+  .device{
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    width: auto;
+    aspect-ratio: 9 / 19.5;
+    max-width: 100%;
+    margin: 0 auto;
+    background: #000;
+    border: var(--border-w) solid var(--ink);
+    border-radius: 16px;
+    box-shadow: 8px 8px 0 0 var(--ink);
+    overflow: hidden;
+  }
+  .device-screen{
+    position: relative;
+    width: 100%; height: 100%;
+  }
+  .device-screen video{
+    width: 100%; height: 100%;
+    /* contain, never cover — no part of the clip is ever cropped */
+    object-fit: contain;
+    background: #000;
+    display: block;
+  }
+  .device-screen .placeholder{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    color: #888;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .sound-toggle{
+    flex: 0 0 auto;
+    margin: 14px auto 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--paper);
+    border: var(--border-w) solid var(--ink);
+    box-shadow: 4px 4px 0 0 var(--ink);
+    padding: 8px 14px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform 60ms ease, box-shadow 60ms ease;
+  }
+  .sound-toggle:hover{ transform: translate(-1px,-1px); box-shadow: 5px 5px 0 0 var(--ink); }
+  .sound-toggle:active{ transform: translate(2px,2px); box-shadow: 2px 2px 0 0 var(--ink); }
+
+  @media (max-width: 780px){
+    .app{ grid-template-columns: 1fr; grid-template-rows: 34vh 1fr; }
+    .sidebar{ border-right: none; border-bottom: var(--border-w) solid var(--ink); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============================================================
+       SIDEBAR — sections rendered from features.js
+       ============================================================ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-title">FEATURE REEL</div>
+      <div class="brand-sub">Pick a feature → watch it play</div>
+    </div>
+    <nav class="feature-list" id="featureList"></nav>
+  </aside>
+
+  <!-- ============================================================
+       STAGE — portrait video player
+       ============================================================ -->
+  <main class="stage" id="stage">
+    <div class="stage-info">
+      <div class="stage-caption">
+        <span class="label" id="sectionLabel">—</span>
+        <div class="title" id="captionTitle">&nbsp;</div>
+        <div class="desc" id="captionDesc"></div>
+      </div>
+      <span class="count" id="featureCount"></span>
+    </div>
+
+    <div class="device">
+      <div class="device-screen">
+        <video id="player" playsinline webkit-playsinline loop></video>
+        <div class="placeholder" id="placeholder">Select a feature<br>from the left to play its clip</div>
+      </div>
+    </div>
+
+    <button class="sound-toggle" id="soundToggle" type="button">🔊 Sound on</button>
+  </main>
+
+</div>
+
+<script src="features.js"></script>
+<script>
+  /* Feature sections are loaded from features.js. */
+
+  const FEATURE_DATA = window.FEATURE_DATA || [];
+
+  const listEl        = document.getElementById('featureList');
+  const stageEl        = document.getElementById('stage');
+  const playerEl       = document.getElementById('player');
+  const placeholderEl  = document.getElementById('placeholder');
+  const captionTitle   = document.getElementById('captionTitle');
+  const captionDesc    = document.getElementById('captionDesc');
+  const sectionLabel   = document.getElementById('sectionLabel');
+  const featureCount   = document.getElementById('featureCount');
+  const soundToggle    = document.getElementById('soundToggle');
+
+  let flatFeatures = [];
+  let activeCard = null;
+  let soundOn = true;
+
+  playerEl.muted = !soundOn;
+
+  function buildSidebar(){
+    if(!FEATURE_DATA.length){
+      listEl.innerHTML = '<div class="feature-list-empty">No features yet. Add entries to FEATURE_DATA in features.js.</div>';
+      return;
+    }
+
+    FEATURE_DATA.forEach((section, sIdx) => {
+      const block = document.createElement('div');
+      block.className = 'section-block';
+      block.style.setProperty('--dot-color', section.color || 'var(--yellow)');
+
+      const eyebrow = document.createElement('div');
+      eyebrow.className = 'section-eyebrow';
+      eyebrow.innerHTML = `<span class="dot"></span><span>${section.section}</span>`;
+      block.appendChild(eyebrow);
+
+      section.features.forEach((feature, fIdx) => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'feature-card';
+        card.style.setProperty('--dot-color', section.color || 'var(--yellow)');
+        card.innerHTML = `<span class="feature-index">${fIdx + 1}</span><span class="feature-name">${feature.name}</span>`;
+
+        const flatIndex = flatFeatures.length;
+        flatFeatures.push({ ...feature, section: section.section, color: section.color, cardEl: card });
+
+        card.addEventListener('click', () => selectFeature(flatIndex));
+        block.appendChild(card);
+      });
+
+      listEl.appendChild(block);
+    });
+
+    featureCount.textContent = flatFeatures.length + ' clip' + (flatFeatures.length === 1 ? '' : 's');
+  }
+
+  function selectFeature(index){
+    const feature = flatFeatures[index];
+    if(!feature) return;
+
+    if(activeCard) activeCard.classList.remove('is-active');
+    feature.cardEl.classList.add('is-active');
+    activeCard = feature.cardEl;
+
+    stageEl.style.setProperty('--accent', feature.color || 'var(--yellow)');
+    sectionLabel.textContent = feature.section;
+    captionTitle.textContent = feature.name;
+    captionDesc.textContent = feature.desc || '';
+
+    placeholderEl.style.display = 'none';
+    playerEl.style.display = 'block';
+    playerEl.src = 'videos/' + feature.file;
+    playerEl.loop = true;
+    playerEl.currentTime = 0;
+    playerEl.play().catch(() => {
+      /* Browsers block unmuted autoplay before any click has
+         happened on the page (e.g. the very first clip on load).
+         Fall back to muted playback so it still plays instantly,
+         and reflect that in the sound toggle. */
+      if(!playerEl.muted){
+        playerEl.muted = true;
+        soundOn = false;
+        soundToggle.textContent = '🔇 Sound off';
+        playerEl.play().catch(() => {});
+      }
+    });
+  }
+
+  soundToggle.addEventListener('click', () => {
+    soundOn = !soundOn;
+    playerEl.muted = !soundOn;
+    soundToggle.textContent = soundOn ? '🔊 Sound on' : '🔇 Sound off';
+    if(soundOn) playerEl.play().catch(() => {});
+  });
+
+  playerEl.addEventListener('error', () => {
+    if(!playerEl.currentSrc) return;
+    placeholderEl.style.display = 'flex';
+    placeholderEl.textContent = 'Couldn\'t find "' + playerEl.src.split('/').pop() + '" in /videos';
+    playerEl.style.display = 'none';
+  });
+
+  buildSidebar();
+  if(flatFeatures.length) selectFeature(0);
+</script>
+
+</body>
+</html>
