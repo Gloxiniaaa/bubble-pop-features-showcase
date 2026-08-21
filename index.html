@@ -98,6 +98,21 @@
     padding: 18px 16px 24px;
   }
 
+  .feature-search{
+    flex: 0 0 auto;
+    margin: 14px 16px 0;
+    padding: 9px 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--border-w) solid var(--ink);
+    outline: none;
+  }
+  .feature-search::placeholder{ color: #999; font-weight: 400; }
+  .feature-search:focus{ box-shadow: var(--shadow-offset) var(--shadow-offset) 0 0 var(--ink); }
+
   .section-block + .section-block{ margin-top: 22px; }
 
   .section-eyebrow{
@@ -241,6 +256,58 @@
     to{ opacity: 1; transform: translateY(0); }
   }
 
+  /* Device zone — keeps the phone centered. */
+  .device-zone{
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+  }
+
+  /* Playback progress bar along the bottom of the video area.
+     Drag to scrub; press-and-hold to boost playback to 2x. */
+  .progress-track{
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 36px;
+    height: 3px;
+    z-index: 4;
+    background: rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    touch-action: none;
+  }
+  /* Invisible extension of the hit area so a 3px line is easy to grab. */
+  .progress-track::after{
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: -5px;
+    height: 13px;
+  }
+  .progress-fill{
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 0;
+    background: var(--paper);
+    transition: background 120ms ease;
+  }
+  .progress-track.boosting .progress-fill{
+    background: var(--orange);
+  }
+  .boost-badge{
+    position: absolute;
+    right: 4px;
+    bottom: 10px;
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--paper);
+    background: var(--ink);
+    padding: 2px 6px;
+  }
+  .progress-track.boosting .boost-badge{ display: block; }
+
   /* Video frame — a thin border rather than a thick bezel, so the
      clip itself gets essentially all of the available height and
      none of it is ever covered or cropped. */
@@ -372,6 +439,7 @@
       <div class="brand-title">FEATURE REEL</div>
       <div class="brand-sub">Pick a feature → watch it play</div>
     </div>
+    <input class="feature-search" id="featureSearch" type="search" placeholder="Search features…" autocomplete="off">
     <nav class="feature-list" id="featureList"></nav>
   </aside>
 
@@ -388,14 +456,20 @@
       <span class="count" id="featureCount"></span>
     </div>
 
-    <div class="device">
-      <div class="device-screen" id="screenA">
-        <video id="playerA" playsinline webkit-playsinline loop></video>
+    <div class="device-zone">
+      <div class="device" id="device">
+        <div class="device-screen" id="screenA">
+          <video id="playerA" playsinline webkit-playsinline loop></video>
+        </div>
+        <div class="device-screen" id="screenB">
+          <video id="playerB" playsinline webkit-playsinline loop></video>
+        </div>
+        <div class="progress-track" id="progressTrack">
+          <div class="progress-fill" id="progressFill"></div>
+          <span class="boost-badge">2×</span>
+        </div>
+        <div class="placeholder" id="placeholder">Select a feature<br>from the left to play its clip</div>
       </div>
-      <div class="device-screen" id="screenB">
-        <video id="playerB" playsinline webkit-playsinline loop></video>
-      </div>
-      <div class="placeholder" id="placeholder">Select a feature<br>from the left to play its clip</div>
     </div>
 
     <button class="sound-toggle" id="soundToggle" type="button">🔊 Sound on</button>
@@ -411,10 +485,14 @@
 
   const listEl        = document.getElementById('featureList');
   const stageEl        = document.getElementById('stage');
+  const searchEl       = document.getElementById('featureSearch');
+  const deviceEl       = document.getElementById('device');
   const screenA        = document.getElementById('screenA');
   const screenB        = document.getElementById('screenB');
   const playerA        = document.getElementById('playerA');
   const playerB        = document.getElementById('playerB');
+  const progressTrack  = document.getElementById('progressTrack');
+  const progressFill   = document.getElementById('progressFill');
   const placeholderEl  = document.getElementById('placeholder');
   const captionTitle   = document.getElementById('captionTitle');
   const captionDesc    = document.getElementById('captionDesc');
@@ -431,6 +509,11 @@
      the standby layer that slides in during swipes, then gets promoted. */
   let liveScreen = screenA,    livePlayer = playerA;
   let standbyScreen = screenB, standbyPlayer = playerB;
+
+  /* Idle preload: standby layer loads the neighbor clip before the swipe. */
+  let preloadDelta = 1;
+  let standbyLoadedFile = '';
+  let preloadTimer = null;
 
   livePlayer.muted = !soundOn;
   liveScreen.style.zIndex = 1;
@@ -467,8 +550,6 @@
 
       listEl.appendChild(block);
     });
-
-    featureCount.textContent = flatFeatures.length + ' clip' + (flatFeatures.length === 1 ? '' : 's');
   }
 
   /* CSS animations run once on load; forcing 'none' → '' re-triggers them. */
@@ -491,6 +572,16 @@
     restartAnimation(sectionLabel);
     restartAnimation(captionTitle);
     restartAnimation(captionDesc);
+
+    featureCount.textContent = (index + 1) + ' / ' + flatFeatures.length;
+    progressFill.style.width = '0%';
+
+    /* Keep the URL shareable: index.html?f=<feature name> */
+    try{
+      const url = new URL(location);
+      url.searchParams.set('f', feature.name);
+      history.replaceState(null, '', url);
+    }catch(err){ /* file:// and exotic hosts can throw — ignore */ }
 
     placeholderEl.style.display = 'none';
     liveScreen.style.zIndex = 1;
@@ -518,6 +609,9 @@
         livePlayer.play().catch(() => {});
       }
     });
+
+    preloadDelta = 1;
+    schedulePreload();
   }
 
   function togglePlayback(){
@@ -548,17 +642,23 @@
     if(reducedMotion){ selectFeature(nextIndex); return; }
 
     swipeLock = true;
+    preloadDelta = delta;
     /* next → live exits up, standby enters from below; previous is the mirror */
     const isNext = delta > 0;
     const exitY = isNext ? '-100%' : '100%';
     const enterY = isNext ? '100%' : '-100%';
     const feature = flatFeatures[nextIndex];
+    const file = 'videos/' + feature.file;
 
-    /* Stage the standby layer off-screen without animating, then slide both. */
+    /* Stage the standby layer off-screen without animating, then slide both.
+       If idle preload already loaded this clip, skip re-loading it. */
     standbyScreen.style.transition = 'none';
     standbyScreen.style.transform = 'translateY(' + enterY + ')';
+    if(standbyLoadedFile !== file){
+      standbyLoadedFile = file;
+      standbyPlayer.src = file;
+    }
     standbyPlayer.muted = livePlayer.muted;
-    standbyPlayer.src = 'videos/' + feature.file;
     standbyPlayer.loop = true;
     standbyPlayer.currentTime = 0;
     standbyPlayer.play().catch(() => {});
@@ -582,6 +682,7 @@
       standbyScreen.style.transition = 'none';
       standbyScreen.style.transform = 'translateY(0)';
       updateStageUI(nextIndex, feature);
+      schedulePreload();
     };
 
     standbyScreen.addEventListener('transitionend', finish, { once: true });
@@ -615,6 +716,128 @@
   playerA.addEventListener('error', onPlayerError);
   playerB.addEventListener('error', onPlayerError);
 
+  /* ---- Idle preload: buffer the neighbor clip so swipes start instantly ---- */
+  function schedulePreload(){
+    clearTimeout(preloadTimer);
+    preloadTimer = setTimeout(preloadStandby, 500);
+  }
+
+  function preloadStandby(){
+    if(swipeLock || !flatFeatures.length || activeIndex < 0) return;
+    const count = flatFeatures.length;
+    const nextIndex = (activeIndex + preloadDelta + count) % count;
+    if(nextIndex === activeIndex) return;
+
+    const file = 'videos/' + flatFeatures[nextIndex].file;
+    if(standbyLoadedFile === file) return;
+    standbyLoadedFile = file;
+    standbyPlayer.muted = livePlayer.muted;
+    standbyPlayer.loop = true;
+    standbyPlayer.src = file;
+    standbyPlayer.currentTime = 0;
+  }
+
+  /* ---- Sidebar search / filter ---- */
+  searchEl.addEventListener('input', () => {
+    const q = searchEl.value.trim().toLowerCase();
+    flatFeatures.forEach(f => {
+      const hit = !q
+        || f.name.toLowerCase().includes(q)
+        || (f.desc || '').toLowerCase().includes(q)
+        || f.section.toLowerCase().includes(q);
+      f.cardEl.style.display = hit ? '' : 'none';
+    });
+    document.querySelectorAll('.section-block').forEach(block => {
+      const visible = [...block.querySelectorAll('.feature-card')]
+        .some(card => card.style.display !== 'none');
+      block.style.display = visible ? '' : 'none';
+    });
+  });
+
+  /* ---- Tap the phone to play/pause ---- */
+  deviceEl.addEventListener('click', () => togglePlayback());
+
+  /* ---- Playback progress bar: drag to scrub, hold to boost to 2x ----
+     A press becomes a scrub once the pointer moves ~6px; staying still
+     for 250ms starts the speed boost instead. */
+  let scrubbing = false;
+  let boosting = false;
+  let downX = 0;
+  let holdTimer = null;
+
+  function setPlaybackRate(rate){
+    playerA.playbackRate = rate;
+    playerB.playbackRate = rate;
+  }
+
+  function startBoost(){
+    if(boosting || !flatFeatures.length || activeIndex < 0) return;
+    boosting = true;
+    progressTrack.classList.add('boosting');
+    setPlaybackRate(2);
+  }
+
+  function stopBoost(){
+    if(!boosting) return;
+    boosting = false;
+    progressTrack.classList.remove('boosting');
+    setPlaybackRate(1);
+  }
+
+  function trackRatio(event){
+    const rect = progressTrack.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  }
+
+  progressTrack.addEventListener('click', (event) => event.stopPropagation()); /* never toggle playback */
+
+  progressTrack.addEventListener('pointerdown', (event) => {
+    if(event.button !== 0) return;
+    scrubbing = false;
+    downX = event.clientX;
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(startBoost, 250);
+    try{ progressTrack.setPointerCapture(event.pointerId); }catch(err){ /* capture is optional */ }
+  });
+
+  progressTrack.addEventListener('pointermove', (event) => {
+    if(!progressTrack.hasPointerCapture(event.pointerId)) return;
+    if(boosting) return;                 /* hold already engaged — keep boosting until release */
+
+    if(!scrubbing){
+      /* generous tolerance: only a deliberate drag (~12px) becomes a scrub */
+      if(Math.abs(event.clientX - downX) < 12) return;
+      scrubbing = true;
+      clearTimeout(holdTimer);
+    }
+
+    const t = trackRatio(event);
+    progressFill.style.width = (t * 100) + '%';
+    if(flatFeatures.length && activeIndex >= 0){
+      const d = livePlayer.duration;
+      if(d && Number.isFinite(d)) livePlayer.currentTime = t * d;
+    }
+  });
+
+  const endProgressInteraction = () => {
+    clearTimeout(holdTimer);
+    stopBoost();
+    scrubbing = false;
+  };
+  progressTrack.addEventListener('pointerup', endProgressInteraction);
+  progressTrack.addEventListener('pointercancel', endProgressInteraction);
+  progressTrack.addEventListener('lostpointercapture', endProgressInteraction);
+
+  /* ---- Playback progress (only the live player drives it) ---- */
+  const onTimeUpdate = function(){
+    if(this !== livePlayer || scrubbing) return;
+    const d = livePlayer.duration;
+    progressFill.style.width =
+      (d && Number.isFinite(d)) ? (livePlayer.currentTime / d) * 100 + '%' : '0%';
+  };
+  playerA.addEventListener('timeupdate', onTimeUpdate);
+  playerB.addEventListener('timeupdate', onTimeUpdate);
+
   /* Wheel → swipe. The sidebar keeps its own native scroll. */
   let wheelLock = false;
   document.addEventListener('wheel', (event) => {
@@ -636,6 +859,7 @@
   }, { passive: true });
 
   document.addEventListener('keydown', (event) => {
+    if(event.target.closest('input')) return;   /* don't hijack typing in the search box */
     if(!flatFeatures.length || activeIndex < 0) return;
 
     const key = event.key.toLowerCase();
@@ -671,7 +895,18 @@
   });
 
   buildSidebar();
-  if(flatFeatures.length) selectFeature(0);
+  if(flatFeatures.length){
+    /* Deep-link: index.html?f=<name or file> jumps straight to a feature. */
+    const urlFeature = new URLSearchParams(location.search).get('f');
+    let startIndex = 0;
+    if(urlFeature){
+      const match = flatFeatures.findIndex(f =>
+        f.name.toLowerCase() === urlFeature.toLowerCase() ||
+        f.file.toLowerCase() === urlFeature.toLowerCase());
+      if(match >= 0) startIndex = match;
+    }
+    selectFeature(startIndex);
+  }
 </script>
 
 </body>
